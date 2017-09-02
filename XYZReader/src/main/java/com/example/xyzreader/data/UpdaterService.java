@@ -9,8 +9,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.RemoteException;
-import android.text.format.Time;
-import android.util.Log;
 
 import com.example.xyzreader.remote.RemoteEndpointUtil;
 
@@ -20,8 +18,10 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
+import timber.log.Timber;
+
 public class UpdaterService extends IntentService {
-    private static final String TAG = "UpdaterService";
+    private static final String TAG = UpdaterService.class.getSimpleName();
 
     public static final String BROADCAST_ACTION_STATE_CHANGE
             = "com.example.xyzreader.intent.action.STATE_CHANGE";
@@ -34,12 +34,10 @@ public class UpdaterService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        Time time = new Time();
-
         ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
         NetworkInfo ni = cm.getActiveNetworkInfo();
         if (ni == null || !ni.isConnected()) {
-            Log.w(TAG, "Not online, not refreshing.");
+            Timber.w("Not online, not refreshing.");
             return;
         }
 
@@ -57,19 +55,19 @@ public class UpdaterService extends IntentService {
         try {
             JSONArray array = RemoteEndpointUtil.fetchJsonArray();
             if (array == null) {
-                throw new JSONException("Invalid parsed item array" );
+                throw new JSONException("Invalid parsed item array");
             }
 
             for (int i = 0; i < array.length(); i++) {
                 ContentValues values = new ContentValues();
                 JSONObject object = array.getJSONObject(i);
-                values.put(ItemsContract.Items.SERVER_ID, object.getString("id" ));
-                values.put(ItemsContract.Items.AUTHOR, object.getString("author" ));
-                values.put(ItemsContract.Items.TITLE, object.getString("title" ));
-                values.put(ItemsContract.Items.BODY, object.getString("body" ));
-                values.put(ItemsContract.Items.THUMB_URL, object.getString("thumb" ));
-                values.put(ItemsContract.Items.PHOTO_URL, object.getString("photo" ));
-                values.put(ItemsContract.Items.ASPECT_RATIO, object.getString("aspect_ratio" ));
+                values.put(ItemsContract.Items.SERVER_ID, object.getString("id"));
+                values.put(ItemsContract.Items.AUTHOR, object.getString("author"));
+                values.put(ItemsContract.Items.TITLE, object.getString("title"));
+                values.put(ItemsContract.Items.BODY, object.getString("body"));
+                values.put(ItemsContract.Items.THUMB_URL, object.getString("thumb"));
+                values.put(ItemsContract.Items.PHOTO_URL, object.getString("photo"));
+                values.put(ItemsContract.Items.ASPECT_RATIO, object.getString("aspect_ratio"));
                 values.put(ItemsContract.Items.PUBLISHED_DATE, object.getString("published_date"));
                 cpo.add(ContentProviderOperation.newInsert(dirUri).withValues(values).build());
             }
@@ -77,7 +75,7 @@ public class UpdaterService extends IntentService {
             getContentResolver().applyBatch(ItemsContract.CONTENT_AUTHORITY, cpo);
 
         } catch (JSONException | RemoteException | OperationApplicationException e) {
-            Log.e(TAG, "Error updating content.", e);
+            Timber.e(e, "Error updating content.");
         }
 
         sendStickyBroadcast(
