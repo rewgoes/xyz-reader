@@ -10,5 +10,9 @@
     <dimen name="app_bar_elevation">4dp</dimen>
     <dimen name="fab_elevation">6dp</dimen>
     <dimen name="fab_press_translation_z">6dp</dimen>
+    <dimen name="card_text_side_margin">16dp</dimen>
+    <dimen name="card_text_top_bottom_margin">16dp</dimen>
+    <dimen name="distance_title_subtitle">4dp</dimen>
+    <dimen name="item_margin">4dp</dimen>
 
 </resources>

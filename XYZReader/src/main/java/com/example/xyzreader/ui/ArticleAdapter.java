@@ -85,20 +85,15 @@ class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHolder> {
         holder.titleView.setText(mCursor.getString(ArticleLoader.Query.TITLE));
         Date publishedDate = parsePublishedDate();
         if (!publishedDate.before(START_OF_EPOCH.getTime())) {
-
             holder.subtitleView.setText(Html.fromHtml(
                     DateUtils.getRelativeTimeSpanString(
                             publishedDate.getTime(),
                             System.currentTimeMillis(), DateUtils.HOUR_IN_MILLIS,
-                            DateUtils.FORMAT_ABBREV_ALL).toString()
-                            + "<br/>" + " by "
-                            + mCursor.getString(ArticleLoader.Query.AUTHOR)));
+                            DateUtils.FORMAT_ABBREV_ALL).toString()));
         } else {
-            holder.subtitleView.setText(Html.fromHtml(
-                    outputFormat.format(publishedDate)
-                            + "<br/>" + " by "
-                            + mCursor.getString(ArticleLoader.Query.AUTHOR)));
+            holder.subtitleView.setText(Html.fromHtml(outputFormat.format(publishedDate)));
         }
+        holder.authorView.setText(mCursor.getString(ArticleLoader.Query.AUTHOR));
 
         GlideApp.with(mContext)
                 .load(mCursor.getString(ArticleLoader.Query.THUMB_URL))
@@ -141,12 +136,14 @@ class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHolder> {
         private ImageView thumbnailView;
         private TextView titleView;
         private TextView subtitleView;
+        private TextView authorView;
 
         private ViewHolder(View view) {
             super(view);
             thumbnailView = (ImageView) view.findViewById(R.id.thumbnail);
             titleView = (TextView) view.findViewById(R.id.article_title);
-            subtitleView = (TextView) view.findViewById(R.id.article_subtitle);
+            subtitleView = (TextView) view.findViewById(R.id.article_date);
+            authorView = (TextView) view.findViewById(R.id.article_author);
         }
     }
 }
