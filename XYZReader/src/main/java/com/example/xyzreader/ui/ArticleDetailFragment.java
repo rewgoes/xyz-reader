@@ -68,10 +68,6 @@ public class ArticleDetailFragment extends Fragment implements
         setHasOptionsMenu(true);
     }
 
-    public ArticleDetailActivity getActivityCast() {
-        return (ArticleDetailActivity) getActivity();
-    }
-
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
@@ -112,9 +108,6 @@ public class ArticleDetailFragment extends Fragment implements
         TextView bodyView = (TextView) mRootView.findViewById(R.id.article_body);
 
         if (mCursor != null) {
-            mRootView.setAlpha(0);
-            mRootView.setVisibility(View.VISIBLE);
-            mRootView.animate().alpha(1);
             bodyView.setText(Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n\r\n|\n\n)", "<br /><br />")));
 
             GlideApp.with(getActivity())
@@ -135,7 +128,6 @@ public class ArticleDetailFragment extends Fragment implements
 //                            return false;
 //                        }
 //                    })
-                    .placeholder(getResources().getDrawable(R.drawable.empty_detail))
                     .into(mPhotoView);
         }
     }
@@ -154,6 +146,7 @@ public class ArticleDetailFragment extends Fragment implements
             return;
         }
 
+        if (mCursor != null) mCursor.close();
         mCursor = cursor;
         if (mCursor != null && !mCursor.moveToFirst()) {
             Timber.e("Error reading item detail cursor");
@@ -166,6 +159,7 @@ public class ArticleDetailFragment extends Fragment implements
 
     @Override
     public void onLoaderReset(Loader<Cursor> cursorLoader) {
+        if (mCursor != null) mCursor.close();
         mCursor = null;
         bindViews();
     }
