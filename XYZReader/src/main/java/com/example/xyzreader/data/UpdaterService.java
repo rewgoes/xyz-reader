@@ -5,6 +5,7 @@ import android.content.ContentProviderOperation;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.OperationApplicationException;
+import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -49,9 +50,6 @@ public class UpdaterService extends IntentService {
 
         Uri dirUri = ItemsContract.Items.buildDirUri();
 
-        // Delete all items
-        cpo.add(ContentProviderOperation.newDelete(dirUri).build());
-
         try {
             JSONArray array = RemoteEndpointUtil.fetchJsonArray();
             if (array == null) {
@@ -69,7 +67,19 @@ public class UpdaterService extends IntentService {
                 values.put(ItemsContract.Items.PHOTO_URL, object.getString("photo"));
                 values.put(ItemsContract.Items.ASPECT_RATIO, object.getString("aspect_ratio"));
                 values.put(ItemsContract.Items.PUBLISHED_DATE, object.getString("published_date"));
-                cpo.add(ContentProviderOperation.newInsert(dirUri).withValues(values).build());
+
+                Long id = Long.valueOf(object.getString("id"));
+                Cursor cursor = getContentResolver().query(ItemsContract.Items.buildDirUri(),
+                        ArticleLoader.Query.PROJECTION, ItemsContract.Items.SERVER_ID + "=" + id,
+                        null, null);
+
+                if (cursor == null || !cursor.moveToFirst()) {
+                    cpo.add(ContentProviderOperation.newInsert(dirUri).withValues(values).build());
+                }
+
+                if (cursor != null && !cursor.isClosed()) {
+                    cursor.close();
+                }
             }
 
             getContentResolver().applyBatch(ItemsContract.CONTENT_AUTHORITY, cpo);
