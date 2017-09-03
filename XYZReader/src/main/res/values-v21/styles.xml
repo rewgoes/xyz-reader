@@ -16,12 +16,9 @@
 -->
 
 <resources>
-    <color name="photo_placeholder">#ccc</color>
 
-    <color name="theme_primary">#FD5621</color>
-    <color name="theme_primary_dark">#E62713</color>
-    <color name="theme_accent">#00B084</color>
-    <color name="ltgray">#ffe0e0e0</color>
+    <style name="Theme.Bacon.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+    </style>
 
-    <color name="dark_muted">#ff333333</color>
 </resources>

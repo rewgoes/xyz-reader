@@ -23,4 +23,6 @@
         <item name="colorAccent">@color/theme_accent</item>
     </style>
 
+    <style name="Theme.Bacon.NoActionBar"/>
+
 </resources>

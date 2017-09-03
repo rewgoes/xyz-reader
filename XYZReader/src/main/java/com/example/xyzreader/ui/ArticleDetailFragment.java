@@ -5,8 +5,14 @@ import android.app.LoaderManager;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
+import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.ShareCompat;
+import android.support.v7.graphics.Palette;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.view.LayoutInflater;
@@ -15,6 +21,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
 import com.example.xyzreader.glide.GlideApp;
@@ -43,6 +53,7 @@ public class ArticleDetailFragment extends Fragment implements
     private SimpleDateFormat outputFormat = new SimpleDateFormat();
     // Most time functions can only handle 1902 - 2037
     private GregorianCalendar START_OF_EPOCH = new GregorianCalendar(2, 1, 1);
+    private CollapsingToolbarLayout mCollapsingToolbarLayout;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -97,6 +108,8 @@ public class ArticleDetailFragment extends Fragment implements
             }
         });
 
+        mCollapsingToolbarLayout = (CollapsingToolbarLayout) mRootView.findViewById(R.id.collapsing_layout);
+
         Toolbar toolbar = (Toolbar) mRootView.findViewById(R.id.toolbar);
         if (toolbar != null) {
             toolbar.setNavigationIcon(R.drawable.ic_arrow_back);
@@ -124,22 +137,28 @@ public class ArticleDetailFragment extends Fragment implements
 
             GlideApp.with(getActivity())
                     .load(mCursor.getString(ArticleLoader.Query.PHOTO_URL))
-//                    .listener(new RequestListener<Drawable>() {
-//                        @Override
-//                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-//                            Timber.d("onLoadFailed");
-//                            return false;
-//                        }
-//
-//                        @Override
-//                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-//                            if (resource instanceof BitmapDrawable) {
-//                                Palette palette = Palette.from(((BitmapDrawable) resource).getBitmap()).generate();
-//                                int color = palette.getDarkVibrantColor(palette.getDarkMutedColor(getResources().getColor(R.color.dark_muted)));
-//                            }
-//                            return false;
-//                        }
-//                    })
+                    .listener(new RequestListener<Drawable>() {
+                        @Override
+                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                            Timber.d("onLoadFailed");
+                            return false;
+                        }
+
+                        @Override
+                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                            if (resource instanceof BitmapDrawable) {
+                                Palette palette = Palette.from(((BitmapDrawable) resource).getBitmap()).generate();
+                                float[] hsv = new float[3];
+                                int color = palette.getVibrantColor(palette.getMutedColor(palette.getDominantColor(getResources().getColor(R.color.dark_muted))));
+                                Color.colorToHSV(color, hsv);
+                                hsv[2] *= 0.8f; // value component
+                                int darkColor = Color.HSVToColor(hsv);
+                                mCollapsingToolbarLayout.setStatusBarScrimColor(darkColor);
+                                mCollapsingToolbarLayout.setContentScrimColor(color);
+                            }
+                            return false;
+                        }
+                    })
                     .into(mPhotoView);
         }
     }
