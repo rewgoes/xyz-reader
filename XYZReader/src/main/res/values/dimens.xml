@@ -14,5 +14,6 @@
     <dimen name="card_text_top_bottom_margin">16dp</dimen>
     <dimen name="distance_title_subtitle">4dp</dimen>
     <dimen name="item_margin">4dp</dimen>
+    <dimen name="expanded_text_margin">40dp</dimen>
 
 </resources>

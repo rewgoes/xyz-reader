@@ -15,6 +15,7 @@ import android.support.v4.app.ShareCompat;
 import android.support.v7.graphics.Palette;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,7 +30,9 @@ import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
 import com.example.xyzreader.glide.GlideApp;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.GregorianCalendar;
 
 import timber.log.Timber;
@@ -125,6 +128,17 @@ public class ArticleDetailFragment extends Fragment implements
         return mRootView;
     }
 
+    private Date parsePublishedDate() {
+        try {
+            String date = mCursor.getString(ArticleLoader.Query.PUBLISHED_DATE);
+            return dateFormat.parse(date);
+        } catch (ParseException ex) {
+            Timber.e(ex.getMessage());
+            Timber.i("passing today's date");
+            return new Date();
+        }
+    }
+
     private void bindViews() {
         if (mRootView == null) {
             return;
@@ -133,7 +147,24 @@ public class ArticleDetailFragment extends Fragment implements
         TextView bodyView = (TextView) mRootView.findViewById(R.id.article_body);
 
         if (mCursor != null) {
+            TextView bylineView = (TextView) mRootView.findViewById(R.id.article_byline);
+            Date publishedDate = parsePublishedDate();
+            if (!publishedDate.before(START_OF_EPOCH.getTime())) {
+                bylineView.setText(DateUtils.getRelativeTimeSpanString(
+                        publishedDate.getTime(),
+                        System.currentTimeMillis(), DateUtils.HOUR_IN_MILLIS,
+                        DateUtils.FORMAT_ABBREV_ALL).toString()
+                        + " · "
+                        + mCursor.getString(ArticleLoader.Query.AUTHOR));
+            } else {
+                // If date is before 1902, just show the string
+                bylineView.setText(outputFormat.format(publishedDate) + " · "
+                        + mCursor.getString(ArticleLoader.Query.AUTHOR));
+            }
+
             bodyView.setText(Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n\r\n|\n\n)", "<br /><br />")));
+
+            mCollapsingToolbarLayout.setTitle(mCursor.getString(ArticleLoader.Query.TITLE));
 
             GlideApp.with(getActivity())
                     .load(mCursor.getString(ArticleLoader.Query.PHOTO_URL))
@@ -147,14 +178,17 @@ public class ArticleDetailFragment extends Fragment implements
                         @Override
                         public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
                             if (resource instanceof BitmapDrawable) {
-                                Palette palette = Palette.from(((BitmapDrawable) resource).getBitmap()).generate();
-                                float[] hsv = new float[3];
-                                int color = palette.getVibrantColor(palette.getMutedColor(palette.getDominantColor(getResources().getColor(R.color.dark_muted))));
-                                Color.colorToHSV(color, hsv);
-                                hsv[2] *= 0.8f; // value component
-                                int darkColor = Color.HSVToColor(hsv);
-                                mCollapsingToolbarLayout.setStatusBarScrimColor(darkColor);
-                                mCollapsingToolbarLayout.setContentScrimColor(color);
+                                if (getActivity() != null && !getActivity().isFinishing() && !getActivity().isDestroyed()) {
+                                    Palette palette = Palette.from(((BitmapDrawable) resource).getBitmap()).generate();
+                                    float[] hsv = new float[3];
+                                    int color = palette.getVibrantColor(palette.getMutedColor(palette.getDominantColor(getActivity().getResources().getColor(R.color.dark_muted))));
+                                    Color.colorToHSV(color, hsv);
+                                    hsv[2] *= 0.8f; // value component
+                                    int darkColor = Color.HSVToColor(hsv);
+                                    mCollapsingToolbarLayout.setStatusBarScrimColor(darkColor);
+                                    mCollapsingToolbarLayout.setContentScrimColor(color);
+                                    mRootView.findViewById(R.id.meta_bar).setBackgroundColor(color);
+                                }
                             }
                             return false;
                         }
