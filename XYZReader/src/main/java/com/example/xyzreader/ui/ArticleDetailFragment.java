@@ -164,7 +164,11 @@ public class ArticleDetailFragment extends Fragment implements
 
             bodyView.setText(Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n\r\n|\n\n)", "<br /><br />")));
 
-            mCollapsingToolbarLayout.setTitle(mCursor.getString(ArticleLoader.Query.TITLE));
+            if (isLargeWidth()) {
+                ((TextView) mRootView.findViewById(R.id.article_title)).setText(mCursor.getString(ArticleLoader.Query.TITLE));
+            } else {
+                mCollapsingToolbarLayout.setTitle(mCursor.getString(ArticleLoader.Query.TITLE));
+            }
 
             GlideApp.with(getActivity())
                     .load(mCursor.getString(ArticleLoader.Query.PHOTO_URL))
@@ -195,6 +199,10 @@ public class ArticleDetailFragment extends Fragment implements
                     })
                     .into(mPhotoView);
         }
+    }
+
+    private boolean isLargeWidth() {
+        return mRootView.findViewById(R.id.card) != null;
     }
 
     @Override

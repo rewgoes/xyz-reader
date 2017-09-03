@@ -15,5 +15,8 @@
     <dimen name="distance_title_subtitle">4dp</dimen>
     <dimen name="item_margin">4dp</dimen>
     <dimen name="expanded_text_margin">40dp</dimen>
+    <dimen name="app_bar_height_large_width">320dp</dimen>
+    <dimen name="card_view_detail_size">600dp</dimen>
+    <dimen name="card_view_overlap_margin">-180dp</dimen>
 
 </resources>
